@@ -8,30 +8,13 @@ import re
 import time
 
 import openai
-openai.api_key = 'api_key'
 
+
+openai.api_key = 'api_key'
 
 st.title("PDF Analyzer")
 
-
-
-# def get_answers(context, question):
-#     # Separate the context and question with a line break to make it clear to the model
-#     prompt = f"{context}\nQuestion: {question}\nAnswer:"
-
-#     response = openai.Completion.create(
-#         model="gpt-3.5-turbo",
-#         prompt=prompt,
-#         temperature=0,
-#         top_p=1,
-#     )
-
-#     # Parse the response to extract the answer
-#     response_text = response.choices[0].text
-#     return response_text
-
 def get_answers(context, question):
-    # Separate the context and question with a line break to make it clear to the model
     prompt = f"{context}\nQuestion: {question}\nAnswer:"
 
     response = openai.ChatCompletion.create(
@@ -43,7 +26,6 @@ def get_answers(context, question):
         ]
     )
 
-    # Parse the response to extract the answer
     response_text = response['choices'][0]['message']['content']
     return response_text
 
