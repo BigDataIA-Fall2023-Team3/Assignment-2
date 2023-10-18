@@ -4,7 +4,7 @@
 
 #### [codelabs](https://codelabs-preview.appspot.com/?file_id=1i1HbF6HBoYjjqOs1vbqH3SOrUFYEOoYAvam3goFDWHM#0)
 
-## Data Quality Assessment and Summarization Tool for SEC PDFs and Freddie Mac Datasets
+## Open AI Interactive Chat Bot
 
 ### Project Description:
 This project involves building a Streamlit-based tool that serves as a chatbox:
