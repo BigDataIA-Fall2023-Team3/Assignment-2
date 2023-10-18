@@ -162,3 +162,8 @@ cython_debug/
 *pdf 
 *mmd
 streamlit/.streamlit
+
+bin/
+etc/
+pyvenv.cfg
+share/
