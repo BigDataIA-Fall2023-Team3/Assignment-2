@@ -6,9 +6,21 @@ import os
 import subprocess
 import openai
 from pydantic import BaseModel
+import tensorflow_hub as hub
+from scipy.spatial import distance
+import numpy as np
+import tiktoken 
+from scipy import spatial
+import pandas as pd
 
 
 app = FastAPI()
+
+EMBEDDING_MODEL = "text-embedding-ada-002"
+GPT_MODEL = "gpt-3.5-turbo"
+embeddings = []
+df = pd.DataFrame(columns=["text", "embedding"])
+openai.api_key = "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"
 
 def download_pdf(pdf_url, file_name):
     try:
@@ -48,15 +60,124 @@ def pypdf_extract(file_name):
         raise HTTPException(status_code=500, detail=f"Failed to extract text from PDF: {e}")
     
     
+def embed(text):
+    global df
+    # Load the Universal Sentence Encoder model
+    module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
+    embed = hub.load(module_url)
+    data = [
+    {    
+        'heading': "Full Content",
+        'content': text,
+    }
+    ]
+    df = pd.DataFrame(data)
+    embeddings = embed(df['content'])
+    result_df = pd.DataFrame({'text': df['content'], 'embedding': embeddings.numpy().tolist()})
+    result_df.to_csv("output_with_embeddings.csv", index=False)
+    print("CSV created")
+    
+
+
+def strings_ranked_by_relatedness(
+    query: str,
+    df: pd.DataFrame,
+    relatedness_fn=lambda x, y: 1 - distance.cosine(x, y),
+    top_n: int = 100
+    ) -> tuple[list[str], list[float]]:
+    """Returns a list of strings and relatednesses, sorted from most related to least."""
+    query_embedding_response = openai.Embedding.create(
+        model=EMBEDDING_MODEL,
+        input=[query],
+    )
+
+    query_embedding = query_embedding_response["data"][0]["embedding"]
+    # print(query_embedding_response)
+    print("________________")
+    
+
+    # Ensure query embedding has the same dimension as the DataFrame embeddings
+    query_embedding = np.array(query_embedding)
+    # print("in relatedness")
+    print(type(query_embedding))
+
+    # query_embedding = np.array(query_embedding)
+    # row_embedding = np.array(row["embedding"])
+
+    strings_and_relatednesses = [
+        (row["text"], relatedness_fn(query_embedding, row["embedding"]))
+        for i, row in df.iterrows()
+    ]
+    strings_and_relatednesses.sort(key=lambda x: x[1], reverse=True)
+    strings, relatednesses = zip(*strings_and_relatednesses)
+    return strings[:top_n], relatednesses[:top_n]
+
+
+def num_tokens(text: str, model: str = GPT_MODEL) -> int:
+    """Return the number of tokens in a string."""
+    encoding = tiktoken.encoding_for_model(model)
+    return len(encoding.encode(text))
+
+def query_message(
+    query: str,
+    df: pd.DataFrame,
+    model: str,
+    token_budget: int
+    ) -> str:
+    """Return a message for GPT, with relevant source texts pulled from a dataframe."""
+    # print("in query msg"+str(type(df)))
+    # print(df)
+    strings, relatednesses = strings_ranked_by_relatedness(query, df)
+    introduction = 'Use the below content of Eligibility Requirements to answer the subsequent question. If the answer cannot be found in the articles, write "I could not find an answer."'
+    question = f"\n\nQuestion: {query}"
+    message = introduction
+    for string in strings:
+        next_article = f'\n\nEligibility Requirements:\n"""\n{string}\n"""'
+        if (
+            num_tokens(message + next_article + question, model=model)
+            > token_budget
+        ):
+            break
+        else:
+            message += next_article
+    return message + question
+
+def ask(
+    query: str,
+    df: pd.DataFrame=df,
+    model: str = GPT_MODEL,
+    token_budget: int = 4096 - 500,
+    print_message: bool = False,
+) -> str:
+    """Answers a query using GPT and a dataframe of relevant texts and embeddings."""
+    # print("in ask"+str(type(df)))
+    df = pd.read_csv("output_with_embeddings.csv")
+    message = query_message(query, df, model=model, token_budget=token_budget)
+    if print_message:
+        print(message)
+    messages = [
+        {"role": "system", "content": "You answer questions about Financial Statements for Tier 1 Off erings."},
+        {"role": "user", "content": message},
+    ]
+    response = openai.ChatCompletion.create(
+        model=model,
+        messages=messages,
+        temperature=0
+    )
+    response_message = response["choices"][0]["message"]["content"]
+    return response_message
+
+  
 class PDFRequest(BaseModel):
     pdf_url: str
     method: str
 
 class PDFResponse(BaseModel):
-    extracted_text: str
+    data: str
 
-@app.post("/process_pdf/")
+@app.post("/process_pdf")
 async def process_pdf(pdf_data: PDFRequest):
+    global df
     pdf_url = pdf_data.pdf_url
     method = pdf_data.method
 
@@ -72,11 +193,19 @@ async def process_pdf(pdf_data: PDFRequest):
             extracted_text = nougat_extract(temp_file_name)
         else:
             raise HTTPException(status_code=400, detail="Invalid extraction method. Use 'pypdf' or 'nougat'.")
-
-        return PDFResponse(extracted_text=extracted_text)
+        
+        
+        embed(extracted_text)
+        return PDFResponse(data="success")
     finally:
         if temp_file_name:
             try:
                 os.remove(temp_file_name)
             except Exception as e:
                 pass
+
+
+@app.get("/get_answer")
+async def get_answer(question: str):
+    response = ask(question, embeddings)
+    return {"answer": response}
