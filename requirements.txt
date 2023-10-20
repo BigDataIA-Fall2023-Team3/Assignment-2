@@ -6,3 +6,4 @@ PyPDF2==3.0.1
 scipy==1.11.3
 uvicorn==0.23.2
 tiktoken==0.5.1
+pydantic==2.1.1
