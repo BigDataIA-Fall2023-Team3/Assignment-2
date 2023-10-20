@@ -5,6 +5,7 @@ import tempfile
 import os
 import subprocess
 import openai
+from pydantic import BaseModel
 
 
 app = FastAPI()
@@ -47,38 +48,32 @@ def pypdf_extract(file_name):
         raise HTTPException(status_code=500, detail=f"Failed to extract text from PDF: {e}")
     
     
-def get_questions(context):
-    try:
-        response = openai.Completion.create(
-            engine="davinci-instruct-beta-v3",
-            prompt=f"Write questions based on the text below\n\nText: {context}\n\nQuestions:\n1.",
-            temperature=0,
-            max_tokens=257,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0,
-            stop=["\n\n"]
-        )
-        return response['choices'][0]['text']
-    except:
-        return ""
-    
+class PDFRequest(BaseModel):
+    pdf_url: str
+    method: str
+
+class PDFResponse(BaseModel):
+    extracted_text: str
 
 @app.post("/process_pdf/")
-async def process_pdf(pdf_url: str, method: str = "pypdf"):
+async def process_pdf(pdf_data: PDFRequest):
+    pdf_url = pdf_data.pdf_url
+    method = pdf_data.method
+
     try:
         with tempfile.NamedTemporaryFile(delete=False) as temp_pdf_file:
             temp_file_name = temp_pdf_file.name
+
         download_pdf(pdf_url, temp_file_name)
-        
+
         if method == "pypdf":
             extracted_text = pypdf_extract(temp_file_name)
         elif method == "nougat":
             extracted_text = nougat_extract(temp_file_name)
         else:
             raise HTTPException(status_code=400, detail="Invalid extraction method. Use 'pypdf' or 'nougat'.")
-        
-        return {"extracted_text": extracted_text}
+
+        return PDFResponse(extracted_text=extracted_text)
     finally:
         if temp_file_name:
             try:
