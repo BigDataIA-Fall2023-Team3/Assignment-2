@@ -1,13 +1,10 @@
-fastapi==0.103.2
-numpy==1.26.1
+fastapi==0.103.1
+numpy==1.24.3
 openai==0.28.1
-pandas==2.1.1
-pydantic==2.1.1
+pandas @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_dflcdcqtvf/croot/pandas_1692297394605/work
 PyPDF2==3.0.1
-requests==2.31.0
-scipy==1.11.3
+scipy @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_2eyzr35lpl/croot/scipy_1691606691057/work/dist/scipy-1.11.1-cp311-cp311-macosx_10_9_x86_64.whl#sha256=82b1181ef0c826710413553e6f4390c7d0c61f0b232ca8afb77b0e4ecfbbbbd3
+tokenizers==0.13.3
+uvicorn==0.23.2
 tensorflow==2.12.1
 tensorflow-hub==0.15.0
-tiktoken==0.5.1
-uvicorn==0.23.2
-
