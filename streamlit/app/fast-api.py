@@ -12,6 +12,7 @@ import numpy as np
 import tiktoken 
 from scipy import spatial
 import pandas as pd
+import ast
 
 
 app = FastAPI()
@@ -68,7 +69,7 @@ def embed(text):
     data = [
     {    
         'heading': "Full Content",
-        'content': text,
+        'content': text.strip(),
     }
     ]
     df = pd.DataFrame(data)
@@ -82,13 +83,13 @@ def embed(text):
 def strings_ranked_by_relatedness(
     query: str,
     df: pd.DataFrame,
-    relatedness_fn=lambda x, y: 1 - distance.cosine(x, y),
+    relatedness_fn=lambda x, y: 1 - spatial.distance.cosine(x, y),
     top_n: int = 100
     ) -> tuple[list[str], list[float]]:
     """Returns a list of strings and relatednesses, sorted from most related to least."""
     query_embedding_response = openai.Embedding.create(
         model=EMBEDDING_MODEL,
-        input=[query],
+        input=query,
     )
 
     query_embedding = query_embedding_response["data"][0]["embedding"]
@@ -98,14 +99,18 @@ def strings_ranked_by_relatedness(
 
     # Ensure query embedding has the same dimension as the DataFrame embeddings
     query_embedding = np.array(query_embedding)
-    # print("in relatedness")
-    print(type(query_embedding))
+    print("in relatedness")
+    embeddings= df["embedding"].tolist()[0]
+    embeddings= np.array(embeddings)
+
+    print(query_embedding.ndim, embeddings.ndim)
+    
 
     # query_embedding = np.array(query_embedding)
     # row_embedding = np.array(row["embedding"])
-
+    
     strings_and_relatednesses = [
-        (row["text"], relatedness_fn(query_embedding, row["embedding"]))
+        (row["text"], relatedness_fn(query_embedding, embeddings))
         for i, row in df.iterrows()
     ]
     strings_and_relatednesses.sort(key=lambda x: x[1], reverse=True)
@@ -152,6 +157,7 @@ def ask(
     """Answers a query using GPT and a dataframe of relevant texts and embeddings."""
     # print("in ask"+str(type(df)))
     df = pd.read_csv("output_with_embeddings.csv")
+    df['embedding'] = df['embedding'].apply(ast.literal_eval)
     message = query_message(query, df, model=model, token_budget=token_budget)
     if print_message:
         print(message)
