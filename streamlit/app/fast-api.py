@@ -62,10 +62,6 @@ def pypdf_extract(file_name):
     
     
 def embed(text):
-    # global df
-    # # Load the Universal Sentence Encoder model
-    # module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
-    # embed = hub.load(module_url)
     data = [
     {    
         'heading': "Full Content",
