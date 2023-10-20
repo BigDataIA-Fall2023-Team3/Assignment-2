@@ -6,7 +6,7 @@ import os
 import subprocess
 import openai
 from pydantic import BaseModel
-import tensorflow_hub as hub
+# import tensorflow_hub as hub
 from scipy.spatial import distance
 import numpy as np
 import tiktoken 
