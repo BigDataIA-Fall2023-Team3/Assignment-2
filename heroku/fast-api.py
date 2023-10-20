@@ -6,7 +6,6 @@ import os
 import subprocess
 import openai
 from pydantic import BaseModel
-# import tensorflow_hub as hub
 from scipy.spatial import distance
 import numpy as np
 import tiktoken 
@@ -14,8 +13,8 @@ from scipy import spatial
 import pandas as pd
 import ast
 
-
 app = FastAPI()
+
 
 EMBEDDING_MODEL = "text-embedding-ada-002"
 GPT_MODEL = "gpt-3.5-turbo"
@@ -62,6 +61,10 @@ def pypdf_extract(file_name):
     
     
 def embed(text):
+    # global df
+    # # Load the Universal Sentence Encoder model
+    # module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
+    # embed = hub.load(module_url)
     data = [
     {    
         'heading': "Full Content",
