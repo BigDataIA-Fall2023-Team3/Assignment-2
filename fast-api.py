@@ -12,16 +12,8 @@ import tiktoken
 from scipy import spatial
 import pandas as pd
 import ast
-import uvicorn
 
 app = FastAPI()
-
-import os
-
-host = "0.0.0.0"
-port = int(os.environ.get("PORT", 8000))
-
-uvicorn.run(app, host=host, port=port)
 
 
 EMBEDDING_MODEL = "text-embedding-ada-002"
