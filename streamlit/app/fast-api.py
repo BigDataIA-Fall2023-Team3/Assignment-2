@@ -62,10 +62,10 @@ def pypdf_extract(file_name):
     
     
 def embed(text):
-    global df
-    # Load the Universal Sentence Encoder model
-    module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
-    embed = hub.load(module_url)
+    # global df
+    # # Load the Universal Sentence Encoder model
+    # module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
+    # embed = hub.load(module_url)
     data = [
     {    
         'heading': "Full Content",
@@ -73,8 +73,16 @@ def embed(text):
     }
     ]
     df = pd.DataFrame(data)
-    embeddings = embed(df['content'])
-    result_df = pd.DataFrame({'text': df['content'], 'embedding': embeddings.numpy().tolist()})
+    # embeddings = embed(df['content'])
+    text_embedding_response = openai.Embedding.create(
+        model=EMBEDDING_MODEL,
+        input=text,
+    )
+    print("Here")
+
+    text_embedding = text_embedding_response["data"][0]["embedding"]
+    print(len(text_embedding))
+    result_df = pd.DataFrame({'text': df['content'], 'embedding': [text_embedding]})
     result_df.to_csv("output_with_embeddings.csv", index=False)
     print("CSV created")
     
@@ -93,21 +101,12 @@ def strings_ranked_by_relatedness(
     )
 
     query_embedding = query_embedding_response["data"][0]["embedding"]
-    # print(query_embedding_response)
-    print("________________")
-    
-
     # Ensure query embedding has the same dimension as the DataFrame embeddings
     query_embedding = np.array(query_embedding)
     print("in relatedness")
-    embeddings= df["embedding"].tolist()[0]
+    embeddings= df["embedding"][0]
+    print(len(embeddings))
     embeddings= np.array(embeddings)
-
-    print(query_embedding.ndim, embeddings.ndim)
-    
-
-    # query_embedding = np.array(query_embedding)
-    # row_embedding = np.array(row["embedding"])
     
     strings_and_relatednesses = [
         (row["text"], relatedness_fn(query_embedding, embeddings))
@@ -116,6 +115,28 @@ def strings_ranked_by_relatedness(
     strings_and_relatednesses.sort(key=lambda x: x[1], reverse=True)
     strings, relatednesses = zip(*strings_and_relatednesses)
     return strings[:top_n], relatednesses[:top_n]
+
+
+
+# def strings_ranked_by_relatedness(
+#     query: str,
+#     df: pd.DataFrame,
+#     relatedness_fn=lambda x, y: 1 - spatial.distance.cosine(x, y),
+#     top_n: int = 100
+# ) -> tuple[list[str], list[float]]:
+#     """Returns a list of strings and relatednesses, sorted from most related to least."""
+#     query_embedding_response = openai.Embedding.create(
+#         model=EMBEDDING_MODEL,
+#         input=query,
+#     )
+#     query_embedding = query_embedding_response["data"][0]["embedding"]
+#     strings_and_relatednesses = [
+#         (row["text"], relatedness_fn(query_embedding, row["embedding"]))
+#         for i, row in df.iterrows()
+#     ]
+#     strings_and_relatednesses.sort(key=lambda x: x[1], reverse=True)
+#     strings, relatednesses = zip(*strings_and_relatednesses)
+#     return strings[:top_n], relatednesses[:top_n]
 
 
 def num_tokens(text: str, model: str = GPT_MODEL) -> int:
