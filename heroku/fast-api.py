@@ -20,7 +20,7 @@ EMBEDDING_MODEL = "text-embedding-ada-002"
 GPT_MODEL = "gpt-3.5-turbo"
 embeddings = []
 df = pd.DataFrame(columns=["text", "embedding"])
-openai.api_key = "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"
+openai.api_key = os.environ["OPENAI_API_KEY"]
 
 def download_pdf(pdf_url, file_name):
     try:
@@ -30,21 +30,7 @@ def download_pdf(pdf_url, file_name):
             pdf_file.write(response.content)
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=500, detail=f"Failed to download PDF: {e}")
-    
-
-def nougat_extract(file_name):
-    try:
-        pdf_name = os.path.splitext(os.path.basename(file_name))[0]
-        print(pdf_name)
-        os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'  # Use CPU if GPU not available
-        subprocess.run(['nougat', '--markdown', 'pdf', file_name, '--out', '.'], check=True)
         
-        file_contents = f'{pdf_name}.mmd'
-        with open(file_contents, 'r') as file:
-            return file.read()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to extract text from PDF using Nougat: {e}")
-    
 
 
 def pypdf_extract(file_name):
@@ -61,10 +47,6 @@ def pypdf_extract(file_name):
     
     
 def embed(text):
-    # global df
-    # # Load the Universal Sentence Encoder model
-    # module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
-    # embed = hub.load(module_url)
     data = [
     {    
         'heading': "Full Content",
@@ -116,26 +98,6 @@ def strings_ranked_by_relatedness(
     return strings[:top_n], relatednesses[:top_n]
 
 
-
-# def strings_ranked_by_relatedness(
-#     query: str,
-#     df: pd.DataFrame,
-#     relatedness_fn=lambda x, y: 1 - spatial.distance.cosine(x, y),
-#     top_n: int = 100
-# ) -> tuple[list[str], list[float]]:
-#     """Returns a list of strings and relatednesses, sorted from most related to least."""
-#     query_embedding_response = openai.Embedding.create(
-#         model=EMBEDDING_MODEL,
-#         input=query,
-#     )
-#     query_embedding = query_embedding_response["data"][0]["embedding"]
-#     strings_and_relatednesses = [
-#         (row["text"], relatedness_fn(query_embedding, row["embedding"]))
-#         for i, row in df.iterrows()
-#     ]
-#     strings_and_relatednesses.sort(key=lambda x: x[1], reverse=True)
-#     strings, relatednesses = zip(*strings_and_relatednesses)
-#     return strings[:top_n], relatednesses[:top_n]
 
 
 def num_tokens(text: str, model: str = GPT_MODEL) -> int:
@@ -196,29 +158,28 @@ def ask(
   
 class PDFRequest(BaseModel):
     pdf_url: str
-    method: str
+
+class n_pdf(BaseModel):
+    text: str
 
 class PDFResponse(BaseModel):
     data: str
 
-@app.post("/process_pdf")
+@app.post("/process_pdf_pypdf")
 async def process_pdf(pdf_data: PDFRequest):
     global df
     pdf_url = pdf_data.pdf_url
-    method = pdf_data.method
+
 
     try:
         with tempfile.NamedTemporaryFile(delete=False) as temp_pdf_file:
             temp_file_name = temp_pdf_file.name
 
         download_pdf(pdf_url, temp_file_name)
-
-        if method == "pypdf":
+        try:
             extracted_text = pypdf_extract(temp_file_name)
-        elif method == "nougat":
-            extracted_text = nougat_extract(temp_file_name)
-        else:
-            raise HTTPException(status_code=400, detail="Invalid extraction method. Use 'pypdf' or 'nougat'.")
+        except:
+            raise HTTPException(status_code=400, detail="Invalid extraction method. Use 'pypdf'")
         
         
         embed(extracted_text)
@@ -229,6 +190,19 @@ async def process_pdf(pdf_data: PDFRequest):
                 os.remove(temp_file_name)
             except Exception as e:
                 pass
+
+
+@app.post("/process_pdf_nougat")
+async def process_pdf(pdf_data: n_pdf):
+    global df
+    extracted_text = pdf_data.text
+        
+    try:
+        embed(extracted_text)
+        return PDFResponse(data="success")
+
+    except:
+        pass
 
 
 @app.get("/get_answer")
