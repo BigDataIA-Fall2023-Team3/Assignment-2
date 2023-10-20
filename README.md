@@ -7,7 +7,7 @@
 ## Open AI Interactive Chat Bot
 
 ### Project Description:
-This project involves building a Streamlit-based tool that serves as a chatbox:
+This project involves building a Streamlit-based tool that serves as a chatbot:
 
 - Allows users to input a link to a PDF document from the SEC website.
 - Provides the option to choose between the "nougat" and "pypdf" libraries for PDF processing.
