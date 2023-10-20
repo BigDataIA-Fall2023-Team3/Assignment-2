@@ -6,6 +6,7 @@ pydantic==2.1.1
 PyPDF2==3.0.1
 requests==2.31.0
 scipy==1.11.3
+tensorflow==2.7.0
 tensorflow-hub==0.15.0
 tiktoken==0.5.1
 uvicorn==0.23.2
