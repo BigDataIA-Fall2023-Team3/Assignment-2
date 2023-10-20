@@ -1,6 +1,6 @@
 ## Assignment-2
 
-#### [streamlit app]
+#### [streamlit]()
 
 #### [Heroku](https://testing-assignment-2-b10953b0ae68.herokuapp.com/docs)
 
@@ -27,9 +27,26 @@ This project involves building a Streamlit-based tool that serves as a chatbot:
 
 ### Architecture
 
+<img width="583" alt="Screen Shot 2023-10-20 at 6 23 41 PM" src="https://github.com/BigDataIA-Fall2023-Team3/Assignment-2/assets/114708712/b219267c-852e-4bd4-abed-90574197fbaf">
 
 ### Navigation
-
+<pre>
+ ├── Fine-Tuned-Models
+│   ├── Fine-Tuning-Model.ipynb
+│   └── Fine-tuned-model-2.ipynb
+├── LICENSE
+├── README.md
+├── heroku
+│   ├── Procfile
+│   ├── fast-api.py
+│   ├── main.py
+│   ├── output_with_embeddings.csv
+│   ├── requirements.txt
+│   └── runtime.txt
+└── streamlit
+    ├── main.py
+    └── requirements.txt
+</pre>
 
 #### Create Virtual Environment
 
