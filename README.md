@@ -2,6 +2,8 @@
 
 #### [streamlit app]
 
+#### [Heroku](https://testing-assignment-2-b10953b0ae68.herokuapp.com/docs)
+
 #### [codelabs](https://codelabs-preview.appspot.com/?file_id=1k9h6G5z1DkXoStdQyCTC3ZMsNPTBl2wp-AFMHDoi1es)
 
 ## Open AI Interactive Chat Bot
