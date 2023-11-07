@@ -27,7 +27,8 @@ This project involves building a Streamlit-based tool that serves as a chatbot:
 
 ### Architecture
 
-<img width="583" alt="Screen Shot 2023-10-20 at 6 23 41 PM" src="https://github.com/BigDataIA-Fall2023-Team3/Assignment-2/assets/114708712/b219267c-852e-4bd4-abed-90574197fbaf">
+![image](https://github.com/BigDataIA-Fall2023-Team3/Assignment-2/assets/114708712/cdb79e9e-3ea1-403f-b1ba-8af00f88f2fb)
+
 
 ### Navigation
 <pre>
