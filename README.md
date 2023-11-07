@@ -1,6 +1,6 @@
 ## Assignment-2
 
-#### [streamlit]()
+#### [streamlit](https://mainpy-akenyqfidkmdqjxnj4haqt.streamlit.app/)
 
 #### [Heroku](https://testing-assignment-2-b10953b0ae68.herokuapp.com/docs)
 
