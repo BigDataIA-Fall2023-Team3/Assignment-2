@@ -1,14 +1,9 @@
-## Assignment-2
-
-#### [streamlit](https://mainpy-akenyqfidkmdqjxnj4haqt.streamlit.app/)
-
-#### [Heroku](https://testing-assignment-2-b10953b0ae68.herokuapp.com/docs)
+# Open AI Interactive Chat Bot
 
 #### [codelabs](https://codelabs-preview.appspot.com/?file_id=1k9h6G5z1DkXoStdQyCTC3ZMsNPTBl2wp-AFMHDoi1es)
 
 #### [DEMO](https://youtu.be/htLS6CFG4hc)
 
-## Open AI Interactive Chat Bot
 
 ### Project Description:
 This project involves building a Streamlit-based tool that serves as a chatbot:
